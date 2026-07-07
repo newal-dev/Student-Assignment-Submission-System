@@ -12,6 +12,10 @@ router.use(authenticate);
 
 // Assignment CRUD operations
 router.get('/', assignmentController.getAllAssignments);
+router.get('/statistics', 
+    authorize('teacher'), // Only teachers can see statistics
+    assignmentController.getAssignmentStatistics
+);
 router.get('/:id', assignmentController.getAssignmentById);
 
 // Teacher-only routes
@@ -30,6 +34,11 @@ router.put('/:id',
 router.delete('/:id',
     authorize('teacher'), // Only teachers can delete
     assignmentController.deleteAssignment
+);
+
+router.delete('/:id/force',
+    authorize('teacher'),
+    assignmentController.forceDeleteAssignment
 );
 
 // Nested routes for submissions

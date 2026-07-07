@@ -19,16 +19,48 @@ class Assignment {
     }
 
     // Get all assignments
-    static async findAll() {
+    static async findAll(filters = {}) {
         try {
-            const result = await pool.query(
-                `SELECT a.*, 
+            let query = `
+                SELECT a.*, 
                         u.username as teacher_name,
                         u.email as teacher_email
                  FROM assignments a
                  LEFT JOIN users u ON a.teacher_id = u.id
-                 ORDER BY a.due_date ASC`
-            );
+                 WHERE 1=1
+            `;
+            const values = [];
+            let paramCount = 1;
+
+            // Apply filters
+            if (filters.search) {
+                query += ` AND (a.title ILIKE $${paramCount} OR a.description ILIKE $${paramCount})`;
+                values.push(`%${filters.search}%`);
+                paramCount++;
+            }
+
+            if (filters.teacher_id) {
+                query += ` AND a.teacher_id = $${paramCount}`;
+                values.push(filters.teacher_id);
+                paramCount++;
+            }
+
+            if (filters.due_date_after) {
+                query += ` AND a.due_date >= $${paramCount}`;
+                values.push(filters.due_date_after);
+                paramCount++;
+            }
+
+            if (filters.due_date_before) {
+                query += ` AND a.due_date <= $${paramCount}`;
+                values.push(filters.due_date_before);
+                paramCount++;
+            }
+
+            // Order by due_date by default
+            query += ` ORDER BY a.due_date ASC`;
+
+            const result = await pool.query(query, values);
             return result.rows;
         } catch (error) {
             throw new Error(`Error fetching assignments: ${error.message}`);
@@ -117,6 +149,19 @@ class Assignment {
             return result.rows[0] || null;
         } catch (error) {
             throw new Error(`Error deleting assignment: ${error.message}`);
+        }
+    }
+    // Check if assignment is past due
+
+    static async isPastDue(id) {
+        try {
+            const result = await pool.query(
+                'SELECT due_date < CURRENT_DATE as is_past_due FROM assignments WHERE id = $1',
+                [id]
+            );
+            return result.rows[0]?.is_past_due || false;
+        } catch (error) {
+            throw new Error(`Error checking due date: ${error.message}`);
         }
     }
 }
