@@ -1,16 +1,17 @@
 /**
- * Authentication Middleware
- * Verifies JWT tokens and protects routes
+ * Authentication & Authorization Middleware
+ * Verifies JWT tokens, protects routes, and checks permissions
  */
 
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
 
-// Extracts user from token and attaches to request
-const authenticate = async (req, res, next) => { //next is needed here so we can pass all this to the controller
+/**
+ * Middleware to verify JWT token
+ * Extracts user from token and attaches to request
+ */
+const authenticate = async (req, res, next) => {
     try {
-        // Get token from Authorization header
-        // Format: "Bearer <token>"
         const authHeader = req.headers.authorization;
         
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -20,13 +21,9 @@ const authenticate = async (req, res, next) => { //next is needed here so we can
             });
         }
 
-        // Extract the token (remove "Bearer " prefix)
         const token = authHeader.split(' ')[1];
-
-        // Verify the token using our secret
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        // Get user from database to ensure they still exist
+        
         const user = await User.findById(decoded.id);
         
         if (!user) {
@@ -36,14 +33,13 @@ const authenticate = async (req, res, next) => { //next is needed here so we can
             });
         }
 
-        // Attach user to request for use in controllers
+        // Attach user to request
         req.user = user;
         req.userId = user.id;
         req.userRole = user.role;
 
-        next(); // Proceed to next middleware or route handler
+        next();
     } catch (error) {
-        // Different types of JWT errors
         if (error.name === 'JsonWebTokenError') {
             return res.status(401).json({
                 error: 'Invalid token',
@@ -58,7 +54,6 @@ const authenticate = async (req, res, next) => { //next is needed here so we can
             });
         }
 
-        // For the generic error
         return res.status(401).json({
             error: 'Authentication failed',
             message: error.message
@@ -67,12 +62,13 @@ const authenticate = async (req, res, next) => { //next is needed here so we can
 };
 
 /**
- * Middleware to check if user has required role used after the authenticate middleware
- * @param {...string} roles - Allowed roles (e.g., 'teacher', 'student') from our db
+ * Middleware to check if user has required role
+ * Must be used after authenticate middleware
+ * 
+ * @param {...string} roles - Allowed roles
  */
 const authorize = (...roles) => {
     return (req, res, next) => {
-        // Check if user exists on request (should, after authenticate)
         if (!req.user) {
             return res.status(401).json({
                 error: 'Authentication required',
@@ -80,34 +76,75 @@ const authorize = (...roles) => {
             });
         }
 
-        // Check if user's role is in the allowed roles
         if (!roles.includes(req.user.role)) {
             return res.status(403).json({
                 error: 'Permission denied',
                 message: `Role '${req.user.role}' cannot access this resource`,
-                required_roles: roles
+                required_roles: roles,
+                // Log this for security monitoring
+                timestamp: new Date().toISOString()
             });
         }
 
-        next(); // Reached iff user has permission
+        next();
     };
 };
 
-// Used when a user should access their own data
+/**
+ * Middleware to check if user owns a resource
+ * Used for protecting user-specific data
+ * 
+ * @param {Function} getResourceOwner - Function to get resource owner ID
+ */
+const isOwner = (getResourceOwner) => {
+    return async (req, res, next) => {
+        try {
+            // Skip ownership check for teachers (they can see all)
+            if (req.user.role === 'teacher') {
+                return next();
+            }
+
+            const resourceId = parseInt(req.params.id);
+            const ownerId = await getResourceOwner(resourceId);
+            
+            if (!ownerId) {
+                return res.status(404).json({
+                    error: 'Resource not found',
+                    message: 'The requested resource does not exist'
+                });
+            }
+
+            if (req.user.id !== ownerId) {
+                return res.status(403).json({
+                    error: 'Permission denied',
+                    message: 'You do not own this resource'
+                });
+            }
+
+            next();
+        } catch (error) {
+            next(error);
+        }
+    };
+};
+
+/**
+ * Check if user is accessing their own data
+ * Used for /profile/:id routes
+ */
 const isSelfOrAdmin = (req, res, next) => {
     const userId = parseInt(req.params.id || req.params.userId);
     
-    // If user is admin, allow access
-    if (req.user.role === 'admin') {
+    // Admin can access any user
+    if (req.user.role === 'teacher') {
         return next();
     }
     
-    // If user is accessing their own data, allow
+    // User can only access themselves
     if (req.user.id === userId) {
         return next();
     }
     
-    // Otherwise, deny
     return res.status(403).json({
         error: 'Permission denied',
         message: 'You can only access your own data'
@@ -117,5 +154,6 @@ const isSelfOrAdmin = (req, res, next) => {
 module.exports = {
     authenticate,
     authorize,
+    isOwner,
     isSelfOrAdmin
 };

@@ -5,13 +5,13 @@ const router = express.Router();
 
 // Import route modules
 const authRoutes = require('./authRoutes');
-// const assignmentRoutes = require('./assignmentRoutes');
-// const submissionRoutes = require('./submissionRoutes');
+const assignmentRoutes = require('./assignmentRoutes');
+const submissionRoutes = require('./submissionRoutes');
 
 // Mount routes
 router.use('/auth', authRoutes);
-// router.use('/assignments', assignmentRoutes);
-// router.use('/submissions', submissionRoutes);
+router.use('/assignments', assignmentRoutes);
+router.use('/submissions', submissionRoutes);
 
 // Health check (public)
 router.get('/health', (req, res) => {
