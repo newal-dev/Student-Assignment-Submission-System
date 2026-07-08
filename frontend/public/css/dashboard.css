@@ -1,0 +1,78 @@
+/**
+ * Dashboard Specific Styles
+ */
+
+/* Assignment Grid */
+.assignments-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+/* Teacher Card */
+.teacher-card .assignment-actions {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 1rem;
+}
+
+/* Submission Status */
+.submission-status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .nav-container {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .nav-menu {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .assignments-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .filter-controls {
+        width: 100%;
+    }
+    
+    .search-input {
+        width: 100%;
+    }
+    
+    .modal-content {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .assignment-header {
+        flex-direction: column;
+    }
+    
+    .assignment-status {
+        margin-left: 0;
+        align-self: flex-start;
+    }
+}

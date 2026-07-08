@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Assignment System</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/student-dashboard.html" class="nav-brand">📚 Assignment System</a>
+            <ul class="nav-menu">
+                <li><a href="/student-dashboard.html" class="active">Dashboard</a></li>
+                <li><a href="#" id="my-submissions-link">My Submissions</a></li>
+                <li><a href="#" class="logout-btn">Logout</a></li>
+            </ul>
+            <div class="user-info">
+                <span>Welcome, <strong id="user-name"></strong>!</span>
+                <span class="role-badge" id="user-role"></span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="dashboard-header">
+            <h1>📖 Student Dashboard</h1>
+            <p class="subtitle">View and submit your assignments</p>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="stats-grid" id="stats-grid">
+            <div class="stat-card">
+                <h3>📋 Total Assignments</h3>
+                <p class="stat-number" id="total-assignments">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>✅ Submitted</h3>
+                <p class="stat-number" id="submitted-count">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>⏳ Pending</h3>
+                <p class="stat-number" id="pending-count">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>📊 Average Grade</h3>
+                <p class="stat-number" id="average-grade">N/A</p>
+            </div>
+        </div>
+
+        <!-- Assignments Section -->
+        <div class="section-header">
+            <h2>Your Assignments</h2>
+            <div class="filter-controls">
+                <select id="filter-status" class="form-select">
+                    <option value="all">All Assignments</option>
+                    <option value="upcoming">Upcoming</option>
+                    <option value="past">Past Due</option>
+                    <option value="submitted">Submitted</option>
+                    <option value="ungraded">Ungraded</option>
+                </select>
+                <input type="text" id="search-assignments" placeholder="🔍 Search assignments..." class="search-input">
+            </div>
+        </div>
+        <div id="assignments-container" class="assignments-grid">
+            <!-- Assignments loaded by JavaScript -->
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>Loading assignments...</p>
+            </div>
+        </div>
+
+        <!-- My Submissions Section -->
+        <div id="my-submissions-section" style="display: none;">
+            <div class="section-header">
+                <h2>📤 My Submissions</h2>
+            </div>
+            <div id="submissions-container">
+                <!-- Submissions loaded by JavaScript -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/utils.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/student.js"></script>
+</body>
+</html>
