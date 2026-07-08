@@ -1,49 +1,66 @@
-// All routes related to assignments with authorization
-
 const express = require('express');
 const router = express.Router();
 const assignmentController = require('../controllers/assignmentController');
 const submissionController = require('../controllers/submissionController');
 const { authenticate, authorize } = require('../middleware/auth');
-const { validateAssignment } = require('../utils/validation');
+const { validate, validateRequest } = require('../middleware/validate');
 
-// All assignment routes require authentication
+// All routes require authentication
 router.use(authenticate);
 
-// Assignment CRUD operations
-router.get('/', assignmentController.getAllAssignments);
-router.get('/statistics', 
-    authorize('teacher'), // Only teachers can see statistics
+// Assignment CRUD with validation
+router.get('/',
+    validate.pagination,
+    validate.filters,
+    validateRequest,
+    assignmentController.getAllAssignments
+);
+
+router.get('/statistics',
+    authorize('teacher'),
     assignmentController.getAssignmentStatistics
 );
-router.get('/:id', assignmentController.getAssignmentById);
 
-// Teacher-only routes
-router.post('/', 
-    authorize('teacher'), // Only teachers can create
-    validateAssignment,
+router.get('/:id',
+    validate.idParam,
+    validateRequest,
+    assignmentController.getAssignmentById
+);
+
+router.post('/',
+    authorize('teacher'),
+    validate.createAssignment,
+    validateRequest,
     assignmentController.createAssignment
 );
 
 router.put('/:id',
-    authorize('teacher'), // Only teachers can update
-    validateAssignment,
+    authorize('teacher'),
+    validate.idParam,
+    validate.updateAssignment,
+    validateRequest,
     assignmentController.updateAssignment
 );
 
 router.delete('/:id',
-    authorize('teacher'), // Only teachers can delete
+    authorize('teacher'),
+    validate.idParam,
+    validateRequest,
     assignmentController.deleteAssignment
 );
 
 router.delete('/:id/force',
     authorize('teacher'),
+    validate.idParam,
+    validateRequest,
     assignmentController.forceDeleteAssignment
 );
 
-// Nested routes for submissions
+// Submissions for assignment
 router.get('/:id/submissions',
-    authorize('teacher'), // Only teachers can view all submissions
+    authorize('teacher'),
+    validate.idParam,
+    validateRequest,
     submissionController.getAssignmentSubmissions
 );
 

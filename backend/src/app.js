@@ -1,86 +1,101 @@
-// Sets up middleware, routes, and error handling
+/**
+ * Express Application Configuration - Updated
+ * Includes all middleware: validation, logging, error handling
+ */
 
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
 const fs = require('fs');
-
 require('dotenv').config();
+
+// Import middleware
+const requestLogger = require('./middleware/requestLogger');
+const sanitizeInput = require('./middleware/sanitize');
+const rateLimiters = require('./middleware/rateLimiter');
+const { errorHandler } = require('./middleware/errorHandler');
+const logger = require('./utils/logger');
 
 const app = express();
 
-// Login Setup
+/**
+ * LOGGING SETUP
+ */
 const logDirectory = path.join(__dirname, '../logs');
-
-// Create logs directory if it doesn't exist
 if (!fs.existsSync(logDirectory)) {
-    fs.mkdirSync(logDirectory);
+    fs.mkdirSync(logDirectory, { recursive: true });
 }
 
-// Create a write stream for log files
-const accessLogStream = fs.createWriteStream(
-    path.join(logDirectory, 'access.log'),
-    { flags: 'a' } // 'a' to append
-);
+// Create Morgan stream for Winston
+const morganStream = {
+    write: (message) => {
+        logger.http(message.trim());
+    }
+};
 
-// Log to console in development
-if (process.env.NODE_ENV === 'development') {
-    app.use(morgan('dev')); // 'dev' gives colorful, concise logs
-}
+// Morgan middleware
+app.use(morgan('combined', { stream: morganStream }));
 
-// Log to file in all environments
-app.use(morgan('combined', { stream: accessLogStream }));
-
-// Our middleware
-
-// CORS for frontend requests
+/**
+ * MIDDLEWARE SETUP
+ */
+// Enable CORS
 app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:3000',
     credentials: true
 }));
 
-// Parse JSON request bodies
-app.use(express.json());
+// Request logging with request ID
+app.use(requestLogger);
 
-// Parse URL-encoded request bodies (from forms)
-app.use(express.urlencoded({ extended: true }));
+// Rate limiting
+app.use('/api/auth', rateLimiters.auth);
+app.use('/api/upload', rateLimiters.upload);
+app.use('/api', rateLimiters.api);
 
-// ROUTES
+// Input sanitization
+app.use(sanitizeInput);
+
+// Body parsing
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Static files
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
+
+/**
+ * ROUTES
+ */
 const apiRoutes = require('./routes');
-
-// Mount API routes
 app.use('/api', apiRoutes);
 
-// Check to see if API is running
+/**
+ * HEALTH CHECK
+ */
 app.get('/health', (req, res) => {
     res.status(200).json({
         status: 'ok',
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV
+        environment: process.env.NODE_ENV,
+        uptime: process.uptime()
     });
 });
 
-// 404 Handling
+/**
+ * 404 HANDLER
+ */
 app.use((req, res) => {
     res.status(404).json({
+        success: false,
         error: 'Route not found',
         message: `Cannot ${req.method} ${req.originalUrl}`
     });
 });
 
-// Global Error Handler
-app.use((err, req, res, next) => {
-    console.error('Error:', err.message);
-    console.error(err.stack);
-
-    const statusCode = err.statusCode || 500;
-    const message = err.message || 'Internal Server Error';
-
-    res.status(statusCode).json({
-        error: message,
-        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    });
-});
+/**
+ * GLOBAL ERROR HANDLER
+ */
+app.use(errorHandler);
 
 module.exports = app;

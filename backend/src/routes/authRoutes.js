@@ -1,19 +1,43 @@
-// All routes related to user authentication and profile management
-
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const { authenticate } = require('../middleware/auth');
-const { validateRegister, validateLogin } = require('../utils/validation');
+const { validate, validateRequest } = require('../middleware/validate');
 
-// Public routes (no authentication required)
-router.post('/register', validateRegister, authController.register);
-router.post('/login', validateLogin, authController.login);
+// Public routes with validation
+router.post('/register', 
+    validate.register,
+    validateRequest,
+    authController.register
+);
 
-// Protected routes (authentication required)
-router.get('/profile', authenticate, authController.getProfile);
-router.put('/profile', authenticate, authController.updateProfile);
-router.put('/change-password', authenticate, authController.changePassword);
-router.post('/logout', authenticate, authController.logout);
+router.post('/login',
+    validate.login,
+    validateRequest,
+    authController.login
+);
+
+// Protected routes
+router.get('/profile', 
+    authenticate, 
+    authController.getProfile
+);
+
+router.put('/profile',
+    authenticate,
+    validate.register,
+    validateRequest,
+    authController.updateProfile
+);
+
+router.put('/change-password',
+    authenticate,
+    authController.changePassword
+);
+
+router.post('/logout',
+    authenticate,
+    authController.logout
+);
 
 module.exports = router;
