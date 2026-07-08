@@ -3,7 +3,9 @@
 const pool = require('../config/database');
 
 class Submission {
-    // Create a new submission (but only role: students can submit)
+    /**
+     * Create a new submission
+     */
     static async create({ assignment_id, student_id, content, file_url }) {
         try {
             // Check if student already submitted this assignment
@@ -19,7 +21,7 @@ class Submission {
             const result = await pool.query(
                 `INSERT INTO submissions (assignment_id, student_id, content, file_url)
                  VALUES ($1, $2, $3, $4)
-                 RETURNING id, assignment_id, student_id, content, file_url, submitted_at, updated_at`,
+                 RETURNING id, assignment_id, student_id, content, file_url, grade, feedback, submitted_at, updated_at`,
                 [assignment_id, student_id, content, file_url]
             );
             return result.rows[0];
@@ -30,8 +32,6 @@ class Submission {
 
     /**
      * Update a submission
-     * Students can update their submission before deadline
-     * Teachers can add grades and feedback
      */
     static async update(id, updates) {
         try {
@@ -41,7 +41,7 @@ class Submission {
             let paramCount = 1;
 
             for (const [key, value] of Object.entries(updates)) {
-                if (allowedUpdates.includes(key)) {
+                if (allowedUpdates.includes(key) && value !== undefined) {
                     updateFields.push(`${key} = $${paramCount}`);
                     values.push(value);
                     paramCount++;
@@ -68,8 +68,7 @@ class Submission {
     }
 
     /**
-     * Get all submissions for a specific given assignment
-     * Teachers use this to view and grade submissions
+     * Get all submissions for a specific assignment
      */
     static async findByAssignment(assignmentId) {
         try {
@@ -91,11 +90,13 @@ class Submission {
         }
     }
 
-    // Get a student's submissions and students can see their own submissions
-    static async findByStudent(studentId) {
+    /**
+     * Get a student's submissions with optional filters
+     */
+    static async findByStudent(studentId, filter = {}) {
         try {
-            const result = await pool.query(
-                `SELECT s.*, 
+            let query = `
+                SELECT s.*, 
                         a.title as assignment_title,
                         a.due_date as assignment_due_date,
                         a.teacher_id,
@@ -104,16 +105,48 @@ class Submission {
                  LEFT JOIN assignments a ON s.assignment_id = a.id
                  LEFT JOIN users u ON a.teacher_id = u.id
                  WHERE s.student_id = $1
-                 ORDER BY s.submitted_at DESC`,
-                [studentId]
-            );
+            `;
+            const values = [studentId];
+            let paramCount = 2;
+
+            if (filter.assignment_id) {
+                query += ` AND s.assignment_id = $${paramCount}`;
+                values.push(filter.assignment_id);
+                paramCount++;
+            }
+
+            query += ` ORDER BY s.submitted_at DESC`;
+
+            const result = await pool.query(query, values);
             return result.rows;
         } catch (error) {
             throw new Error(`Error fetching student's submissions: ${error.message}`);
         }
     }
 
-    // Get a single submission by ID for viewing
+    /**
+     * Find submissions by student and assignment
+     */
+    static async findByStudentAndAssignment(studentId, assignmentId) {
+        try {
+            const result = await pool.query(
+                `SELECT s.*, 
+                        a.title as assignment_title,
+                        a.due_date as assignment_due_date
+                 FROM submissions s
+                 LEFT JOIN assignments a ON s.assignment_id = a.id
+                 WHERE s.student_id = $1 AND s.assignment_id = $2`,
+                [studentId, assignmentId]
+            );
+            return result.rows;
+        } catch (error) {
+            throw new Error(`Error finding submission: ${error.message}`);
+        }
+    }
+
+    /**
+     * Get a single submission by ID
+     */
     static async findById(id) {
         try {
             const result = await pool.query(
@@ -121,7 +154,8 @@ class Submission {
                         u.username as student_name,
                         u.email as student_email,
                         a.title as assignment_title,
-                        a.due_date as assignment_due_date
+                        a.due_date as assignment_due_date,
+                        a.teacher_id
                  FROM submissions s
                  LEFT JOIN users u ON s.student_id = u.id
                  LEFT JOIN assignments a ON s.assignment_id = a.id
@@ -134,7 +168,9 @@ class Submission {
         }
     }
 
-    // Delete a submission but before the deadline
+    /**
+     * Delete a submission
+     */
     static async delete(id) {
         try {
             const result = await pool.query(
@@ -144,6 +180,36 @@ class Submission {
             return result.rows[0] || null;
         } catch (error) {
             throw new Error(`Error deleting submission: ${error.message}`);
+        }
+    }
+
+    /**
+     * Get submission count for an assignment
+     */
+    static async countByAssignment(assignmentId) {
+        try {
+            const result = await pool.query(
+                'SELECT COUNT(*) as count FROM submissions WHERE assignment_id = $1',
+                [assignmentId]
+            );
+            return parseInt(result.rows[0].count);
+        } catch (error) {
+            throw new Error(`Error counting submissions: ${error.message}`);
+        }
+    }
+
+    /**
+     * Get average grade for an assignment
+     */
+    static async averageGradeByAssignment(assignmentId) {
+        try {
+            const result = await pool.query(
+                'SELECT AVG(grade) as average FROM submissions WHERE assignment_id = $1 AND grade IS NOT NULL',
+                [assignmentId]
+            );
+            return parseFloat(result.rows[0].average) || 0;
+        } catch (error) {
+            throw new Error(`Error calculating average grade: ${error.message}`);
         }
     }
 }
