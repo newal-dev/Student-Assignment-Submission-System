@@ -7,11 +7,13 @@ const router = express.Router();
 const authRoutes = require('./authRoutes');
 const assignmentRoutes = require('./assignmentRoutes');
 const submissionRoutes = require('./submissionRoutes');
+const gradingRoutes = require('./gradingRoutes');
 
 // Mount routes
 router.use('/auth', authRoutes);
 router.use('/assignments', assignmentRoutes);
 router.use('/submissions', submissionRoutes);
+router.use('/grading', gradingRoutes);
 
 // Health check (public)
 router.get('/health', (req, res) => {
