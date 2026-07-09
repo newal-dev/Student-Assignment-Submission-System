@@ -5,15 +5,20 @@
 /* Assignment Grid */
 .assignments-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+    gap: 1.25rem;
     margin-bottom: 2rem;
 }
 
 /* Teacher Card */
 .teacher-card .assignment-actions {
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid var(--color-border, #e2e8f0);
     padding-top: 1rem;
+}
+
+/* Submissions view (rendered in place of the assignments grid) */
+.submissions-view {
+    grid-column: 1 / -1;
 }
 
 /* Submission Status */
@@ -29,36 +34,56 @@
     .nav-container {
         flex-direction: column;
         gap: 0.5rem;
+        align-items: stretch;
+        text-align: center;
     }
-    
+
     .nav-menu {
         flex-wrap: wrap;
         justify-content: center;
     }
-    
+
+    .user-info {
+        justify-content: center;
+    }
+
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .assignments-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .section-header {
         flex-direction: column;
+        align-items: stretch;
         gap: 0.5rem;
     }
-    
+
     .filter-controls {
         width: 100%;
     }
-    
+
+    .filter-controls .form-select {
+        width: 100%;
+    }
+
     .search-input {
         width: 100%;
     }
-    
+
     .modal-content {
-        padding: 1rem;
+        padding: 1.25rem;
+    }
+
+    .quick-actions {
+        flex-direction: column;
+    }
+
+    .quick-actions .btn {
+        width: 100%;
+        text-align: center;
     }
 }
 
@@ -66,13 +91,25 @@
     .stats-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .assignment-header {
         flex-direction: column;
+        gap: 0.5rem;
     }
-    
+
     .assignment-status {
         margin-left: 0;
         align-self: flex-start;
+    }
+
+    #toast-container {
+        left: 12px;
+        right: 12px;
+        top: 12px;
+    }
+
+    .toast {
+        min-width: 0;
+        width: 100%;
     }
 }

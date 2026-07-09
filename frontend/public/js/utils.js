@@ -1,5 +1,5 @@
 /**
- * Utility Functions
+ * Utility Functions - Complete
  * Common helper functions used across the application
  */
 
@@ -65,29 +65,29 @@ function getGradeColor(grade) {
  * Show toast notification
  */
 function showToast(message, type = 'success') {
-    const toastContainer = document.getElementById('toast-container');
+    let toastContainer = document.getElementById('toast-container');
     if (!toastContainer) {
         // Create container if it doesn't exist
-        const container = document.createElement('div');
-        container.id = 'toast-container';
-        container.style.position = 'fixed';
-        container.style.top = '20px';
-        container.style.right = '20px';
-        container.style.zIndex = '9999';
-        document.body.appendChild(container);
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.style.position = 'fixed';
+        toastContainer.style.top = '20px';
+        toastContainer.style.right = '20px';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
     }
     
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.innerHTML = `
         <div class="toast-header">
-            <strong>${type === 'success' ? '✅' : '❌'} ${type === 'success' ? 'Success' : 'Error'}</strong>
-            <button type="button" class="toast-close" onclick="this.parentElement.parentElement.remove()">&times;</button>
+            <strong>${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+            <button type="button" class="toast-close" onclick="this.closest('.toast').remove()">&times;</button>
         </div>
         <div class="toast-body">${message}</div>
     `;
     
-    document.getElementById('toast-container').appendChild(toast);
+    toastContainer.appendChild(toast);
     
     // Auto-remove after 5 seconds
     setTimeout(() => {
@@ -138,28 +138,28 @@ function createAssignmentCard(assignment) {
             </div>
             <p class="assignment-description">${assignment.description || 'No description'}</p>
             <div class="assignment-meta">
-                <span class="due-date">📅 Due: ${formatDateOnly(assignment.due_date)}</span>
-                <span class="teacher">👨‍🏫 ${assignment.teacher_name || 'Unknown Teacher'}</span>
+                <span class="due-date">Due: ${formatDateOnly(assignment.due_date)}</span>
+                <span class="teacher">${assignment.teacher_name || 'Unknown Teacher'}</span>
             </div>
             ${assignment.submitted ? `
                 <div class="submission-status">
-                    <span class="badge badge-success">✅ Submitted</span>
+                    <span class="badge badge-success">Submitted</span>
                     ${assignment.grade !== null ? `
                         <span class="badge ${getGradeColor(assignment.grade)}">
                             Grade: ${assignment.grade}% (${getGradeLetter(assignment.grade)})
                         </span>
                     ` : `
-                        <span class="badge badge-warning">⏳ Awaiting Grade</span>
+                        <span class="badge badge-warning">Awaiting Grade</span>
                     `}
                 </div>
             ` : `
                 ${!isPast ? `
                     <button onclick="window.location.href='/assignment-detail.html?id=${assignment.id}'" 
                             class="btn btn-primary btn-sm">
-                        📝 Submit Assignment
+                        Submit Assignment
                     </button>
                 ` : `
-                    <span class="badge badge-secondary">🔒 Past Due</span>
+                    <span class="badge badge-secondary">Past Due</span>
                 `}
             `}
         </div>
@@ -177,7 +177,7 @@ function createSubmissionRow(submission) {
             <td>${formatDate(submission.submitted_at)}</td>
             <td>
                 ${submission.file_url ? `
-                    <a href="${submission.file_url}" target="_blank" class="btn btn-sm btn-info">📎 View File</a>
+                    <a href="${submission.file_url}" target="_blank" class="btn btn-sm btn-info">View File</a>
                 ` : 'No file'}
             </td>
             <td>
@@ -192,7 +192,7 @@ function createSubmissionRow(submission) {
             <td>
                 <button onclick="gradeSubmission(${submission.id})" 
                         class="btn btn-sm btn-primary">
-                    ${isGraded ? '✏️ Update Grade' : '📝 Grade'}
+                    ${isGraded ? 'Update Grade' : 'Grade'}
                 </button>
             </td>
         </tr>

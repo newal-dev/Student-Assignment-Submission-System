@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Assignment - Assignment System</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/student-dashboard.html" class="nav-brand">📚 Assignment System</a>
+            <ul class="nav-menu">
+                <!-- Link back to dashboard, not a dead end -->
+                <li><a href="/student-dashboard.html">← Back to Dashboard</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <!-- Assignment info gets filled in by JS once it loads -->
+        <div id="assignment-info" class="assignment-detail-card">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>Loading assignment...</p>
+            </div>
+        </div>
+
+        <!-- Submission form, hidden until we know the assignment is loaded + submittable -->
+        <div id="submission-form-container" style="display: none;">
+            <h2>Submit Your Work</h2>
+            <form id="submission-form">
+                <div class="form-group">
+                    <label for="content">Written response (optional if uploading a file)</label>
+                    <textarea id="content" name="content" rows="6" class="form-control"
+                        placeholder="Type your submission here..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="file">Attach a file (optional if writing content above)</label>
+                    <input type="file" id="file" name="file" class="form-control">
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="submit-btn">
+                    Submit Assignment
+                </button>
+            </form>
+        </div>
+
+        <!-- Shown instead of the form if already submitted / past due -->
+        <div id="status-message" style="display: none;"></div>
+    </main>
+
+    <div id="toast-container"></div>
+
+    <!-- Same load order as student-dashboard.html: api -> utils -> auth -> page-specific logic -->
+    <script src="/js/api.js"></script>
+    <script src="/js/utils.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/assignment-detail.js"></script>
+</body>
+</html>

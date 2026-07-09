@@ -1,6 +1,6 @@
 /**
- * Authentication Logic
- * Handles login, registration, and session management
+ * Authentication Logic - Complete
+ * Handles login, registration, session management, and logout
  */
 
 /**
@@ -11,20 +11,20 @@ function checkAuth() {
     const user = api.user;
     
     // Pages that don't require authentication
-    const publicPages = ['/login.html', '/register.html', '/'];
+    const publicPages = ['/login.html', '/register.html', '/index.html', '/'];
     
     const currentPage = window.location.pathname;
     
+    // If not logged in and on protected page, redirect to login
     if (!isLoggedIn) {
-        // If on protected page, redirect to login
         if (!publicPages.includes(currentPage)) {
             window.location.href = '/login.html';
         }
         return;
     }
     
-    // If logged in and on public page, redirect to appropriate dashboard
-    if (publicPages.includes(currentPage)) {
+    // If logged in and on public page (except index), redirect to appropriate dashboard
+    if (publicPages.includes(currentPage) && currentPage !== '/index.html' && currentPage !== '/') {
         if (user.role === 'teacher') {
             window.location.href = '/teacher-dashboard.html';
         } else {
@@ -36,10 +36,12 @@ function checkAuth() {
     // Verify user has access to current page
     if (currentPage.includes('teacher') && user.role !== 'teacher') {
         window.location.href = '/student-dashboard.html';
+        return;
     }
     
     if (currentPage.includes('student') && user.role !== 'student') {
         window.location.href = '/teacher-dashboard.html';
+        return;
     }
 }
 
@@ -51,29 +53,43 @@ async function handleLogin(event) {
     
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-    const errorElement = document.getElementById('error-message');
-    const submitBtn = document.querySelector('button[type="submit"]');
+    const errorElement = document.getElementById('general-error');
+    const submitBtn = document.querySelector('#login-btn') || document.querySelector('button[type="submit"]');
     
     // Show loading state
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Logging in...';
-    errorElement.textContent = '';
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Logging in...';
+    }
+    if (errorElement) {
+        errorElement.textContent = '';
+        errorElement.classList.remove('show');
+    }
     
     try {
         const data = await api.login(email, password);
         
+        // Show success message
+        showToast('Login successful! Redirecting...', 'success');
+        
         // Redirect based on role
-        if (data.user.role === 'teacher') {
-            window.location.href = '/teacher-dashboard.html';
-        } else {
-            window.location.href = '/student-dashboard.html';
-        }
+        setTimeout(() => {
+            if (data.user.role === 'teacher') {
+                window.location.href = '/teacher-dashboard.html';
+            } else {
+                window.location.href = '/student-dashboard.html';
+            }
+        }, 500);
+        
     } catch (error) {
-        errorElement.textContent = error.message || 'Login failed. Please try again.';
-        errorElement.style.display = 'block';
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Login';
+        if (errorElement) {
+            errorElement.textContent = error.message || 'Login failed. Please try again.';
+            errorElement.classList.add('show');
+        }
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Login';
+        }
     }
 }
 
@@ -88,43 +104,59 @@ async function handleRegister(event) {
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirm-password').value;
     const role = document.getElementById('role').value;
-    const errorElement = document.getElementById('error-message');
-    const submitBtn = document.querySelector('button[type="submit"]');
+    const errorElement = document.getElementById('general-error');
+    const submitBtn = document.querySelector('#register-btn') || document.querySelector('button[type="submit"]');
     
     // Validate passwords match
     if (password !== confirmPassword) {
-        errorElement.textContent = 'Passwords do not match';
-        errorElement.style.display = 'block';
+        if (errorElement) {
+            errorElement.textContent = 'Passwords do not match';
+            errorElement.classList.add('show');
+        }
         return;
     }
     
     // Validate password strength
     if (password.length < 6) {
-        errorElement.textContent = 'Password must be at least 6 characters';
-        errorElement.style.display = 'block';
+        if (errorElement) {
+            errorElement.textContent = 'Password must be at least 6 characters';
+            errorElement.classList.add('show');
+        }
         return;
     }
     
     // Show loading state
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Creating Account...';
-    errorElement.textContent = '';
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating Account...';
+    }
+    if (errorElement) {
+        errorElement.textContent = '';
+        errorElement.classList.remove('show');
+    }
     
     try {
         const data = await api.register(username, email, password, role);
         
-        // Redirect based on role
-        if (data.user.role === 'teacher') {
-            window.location.href = '/teacher-dashboard.html';
-        } else {
-            window.location.href = '/student-dashboard.html';
-        }
+        showToast('Account created successfully! Redirecting...', 'success');
+        
+        setTimeout(() => {
+            if (data.user.role === 'teacher') {
+                window.location.href = '/teacher-dashboard.html';
+            } else {
+                window.location.href = '/student-dashboard.html';
+            }
+        }, 500);
+        
     } catch (error) {
-        errorElement.textContent = error.message || 'Registration failed. Please try again.';
-        errorElement.style.display = 'block';
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Create Account';
+        if (errorElement) {
+            errorElement.textContent = error.message || 'Registration failed. Please try again.';
+            errorElement.classList.add('show');
+        }
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Create Account';
+        }
     }
 }
 
@@ -132,7 +164,7 @@ async function handleRegister(event) {
  * Handle logout
  */
 function handleLogout(event) {
-    event.preventDefault();
+    if (event) event.preventDefault();
     if (confirm('Are you sure you want to logout?')) {
         api.logout();
     }
@@ -160,3 +192,8 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', handleLogout);
     });
 });
+
+// Make functions globally available for inline onclick handlers
+window.handleLogout = handleLogout;
+window.handleLogin = handleLogin;
+window.handleRegister = handleRegister;

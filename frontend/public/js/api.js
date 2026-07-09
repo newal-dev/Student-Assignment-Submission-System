@@ -1,7 +1,7 @@
 /**
- * Is the API Client
+ * Final API Client - Complete
  * Handles all API communication with the backend
- * Centralizes authentication and error handling
+ * Includes authentication, assignments, submissions, and grading
  */
 
 const API_BASE_URL = 'http://localhost:5000/api';
@@ -67,10 +67,8 @@ class ApiClient {
         if (!response.ok) {
             // Handle authentication errors
             if (response.status === 401) {
-                // Token expired or invalid
                 this.setToken(null);
                 this.setUser(null);
-                // Redirect to login if not already there
                 if (!window.location.pathname.includes('login') && 
                     !window.location.pathname.includes('register')) {
                     window.location.href = '/login.html';
@@ -148,7 +146,26 @@ class ApiClient {
     }
 
     /**
-     * Auth endpoints
+     * File upload with PUT (for updates)
+     */
+    async uploadPut(endpoint, formData) {
+        const headers = {};
+        if (this.token) {
+            headers['Authorization'] = `Bearer ${this.token}`;
+        }
+        
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            method: 'PUT',
+            headers: headers,
+            body: formData
+        });
+        return this.handleResponse(response);
+    }
+
+    // AUTHENTICATION METHODS
+
+    /**
+     * Login user
      */
     async login(email, password) {
         const data = await this.post('/auth/login', { email, password });
@@ -157,6 +174,9 @@ class ApiClient {
         return data;
     }
 
+    /**
+     * Register user
+     */
     async register(username, email, password, role = 'student') {
         const data = await this.post('/auth/register', { 
             username, email, password, role 
@@ -166,88 +186,202 @@ class ApiClient {
         return data;
     }
 
+    /**
+     * Logout user
+     */
     async logout() {
+        try {
+            await this.post('/auth/logout', {});
+        } catch (error) {
+            // Ignore logout errors
+        }
         this.setToken(null);
         this.setUser(null);
         window.location.href = '/login.html';
     }
 
     /**
-     * Assignment endpoints
+     * Get current user profile
+     */
+    async getProfile() {
+        return this.get('/auth/profile');
+    }
+
+    /**
+     * Update user profile
+     */
+    async updateProfile(data) {
+        return this.put('/auth/profile', data);
+    }
+
+    /**
+     * Change password
+     */
+    async changePassword(currentPassword, newPassword) {
+        return this.put('/auth/change-password', { currentPassword, newPassword });
+    }
+
+    // ASSIGNMENT METHODS
+
+    /**
+     * Get all assignments with filters
      */
     async getAssignments(params = {}) {
         const queryString = new URLSearchParams(params).toString();
         return this.get(`/assignments${queryString ? '?' + queryString : ''}`);
     }
 
+    /**
+     * Get single assignment by ID
+     */
     async getAssignment(id) {
         return this.get(`/assignments/${id}`);
     }
 
+    /**
+     * Create new assignment (teacher only)
+     */
     async createAssignment(data) {
         return this.post('/assignments', data);
     }
 
+    /**
+     * Update assignment (teacher only)
+     */
     async updateAssignment(id, data) {
         return this.put(`/assignments/${id}`, data);
     }
 
+    /**
+     * Delete assignment (teacher only)
+     */
     async deleteAssignment(id) {
         return this.delete(`/assignments/${id}`);
     }
 
     /**
-     * Submission endpoints
+     * Force delete assignment with submissions (teacher only)
+     */
+    async forceDeleteAssignment(id) {
+        return this.delete(`/assignments/${id}/force`);
+    }
+
+    /**
+     * Get assignment statistics (teacher only)
+     */
+    async getAssignmentStatistics() {
+        return this.get('/assignments/statistics');
+    }
+
+    // SUBMISSION METHODS
+    /**
+     * Create submission (student only)
+     */
+    async createSubmission(formData) {
+        return this.upload('/submissions', formData);
+    }
+
+    /**
+     * Get current user's submissions (student only)
      */
     async getMySubmissions() {
         return this.get('/submissions/me');
     }
 
+    /**
+     * Get submission statistics for current user (student only)
+     */
+    async getMySubmissionStats() {
+        return this.get('/submissions/me/stats');
+    }
+
+    /**
+     * Get single submission by ID
+     */
     async getSubmission(id) {
         return this.get(`/submissions/${id}`);
     }
 
-    async createSubmission(formData) {
-        return this.upload('/submissions', formData);
-    }
-
+    /**
+     * Update submission (student only, before deadline)
+     */
     async updateSubmission(id, formData) {
-        return this.upload(`/submissions/${id}`, formData);
+        return this.uploadPut(`/submissions/${id}`, formData);
     }
 
+    /**
+     * Delete submission (student only, before deadline)
+     */
     async deleteSubmission(id) {
         return this.delete(`/submissions/${id}`);
     }
 
     /**
-     * Grading endpoints (teacher only)
+     * Get submissions for an assignment (teacher only)
+     */
+    async getAssignmentSubmissions(assignmentId) {
+        return this.get(`/assignments/${assignmentId}/submissions`);
+    }
+
+    // Grading Methods
+
+    /**
+     * Get grading dashboard (teacher only)
      */
     async getGradingDashboard() {
         return this.get('/grading/dashboard');
     }
 
+    /**
+     * Get assignment analytics (teacher only)
+     */
     async getAssignmentAnalytics(id) {
         return this.get(`/grading/assignments/${id}/analytics`);
     }
 
+    /**
+     * Grade a submission (teacher only)
+     */
     async gradeSubmission(id, data) {
         return this.put(`/grading/submissions/${id}`, data);
     }
 
+    /**
+     * Batch grade submissions (teacher only)
+     */
     async batchGrade(data) {
         return this.post('/grading/batch', data);
     }
 
+    /**
+     * Get grading reminders (teacher only)
+     */
     async getGradingReminders() {
         return this.get('/grading/reminders');
     }
 
+    /**
+     * Export grades as CSV (teacher only)
+     */
     async exportGrades(id) {
         const response = await fetch(`${API_BASE_URL}/grading/assignments/${id}/export`, {
             method: 'GET',
             headers: this.getHeaders()
         });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to export grades');
+        }
+        
         return response;
+    }
+
+    /**
+     * Get student performance (teacher only)
+     */
+    async getStudentPerformance(studentId) {
+        return this.get(`/grading/students/${studentId}/performance`);
     }
 }
 

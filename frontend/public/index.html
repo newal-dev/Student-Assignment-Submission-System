@@ -3,45 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assignment System - Home</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <title>Assignment System</title>
     <style>
-        .hero {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-align: center;
             padding: 2rem;
         }
         
-        .hero-content {
+        .container {
             max-width: 600px;
+            background: white;
+            border-radius: 1rem;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
+        .logo {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 1.25rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.75rem;
             font-weight: 700;
         }
         
-        .hero p {
-            font-size: 1.25rem;
+        h1 {
+            font-size: 2.5rem;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #718096;
             margin-bottom: 2rem;
-            opacity: 0.9;
             line-height: 1.6;
         }
         
-        .hero-buttons {
+        .buttons {
             display: flex;
             gap: 1rem;
             justify-content: center;
             flex-wrap: wrap;
         }
         
-        .hero-btn {
+        .btn {
             padding: 0.75rem 2rem;
             border-radius: 0.375rem;
             font-size: 1rem;
@@ -51,126 +80,139 @@
             display: inline-block;
         }
         
-        .hero-btn-primary {
-            background: white;
-            color: #667eea;
-        }
-        
-        .hero-btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-        
-        .hero-btn-secondary {
-            background: transparent;
+        .btn-primary {
+            background: #667eea;
             color: white;
-            border: 2px solid white;
         }
         
-        .hero-btn-secondary:hover {
-            background: rgba(255,255,255,0.1);
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+        
+        .btn-secondary:hover {
+            background: #cbd5e0;
             transform: translateY(-2px);
         }
         
         .features {
-            padding: 4rem 2rem;
-            background: #f7fafc;
-        }
-        
-        .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 2rem;
+            text-align: left;
         }
         
-        .feature-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            text-align: center;
+        .feature {
+            padding: 1rem;
+            background: #f7fafc;
+            border-radius: 0.375rem;
+            border-left: 3px solid #667eea;
         }
         
-        .feature-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-        
-        .feature-card h3 {
-            margin-bottom: 0.5rem;
+        .feature h3 {
+            font-size: 0.9rem;
             color: #2d3748;
+            margin-bottom: 0.25rem;
         }
         
-        .feature-card p {
+        .feature p {
+            font-size: 0.85rem;
             color: #718096;
+            margin-bottom: 0;
         }
         
-        .section-title {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 2rem;
-            color: #2d3748;
+        .logged-in-info {
+            background: #f0fff4;
+            border: 1px solid #48bb78;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            margin-bottom: 1.5rem;
         }
         
-        @media (max-width: 768px) {
-            .hero h1 {
+        .logged-in-info p {
+            margin: 0;
+            color: #276749;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 2rem;
+            }
+            
+            h1 {
                 font-size: 2rem;
             }
             
-            .hero p {
-                font-size: 1rem;
+            .features {
+                grid-template-columns: 1fr;
             }
             
-            .hero-buttons {
+            .buttons {
                 flex-direction: column;
-                align-items: center;
             }
             
-            .hero-btn {
+            .btn {
                 width: 100%;
-                max-width: 250px;
+                text-align: center;
             }
         }
     </style>
 </head>
 <body>
-    <section class="hero">
-        <div class="hero-content">
-            <h1>📚 Assignment System</h1>
-            <p>Streamline your assignment management. Teachers create and grade, students submit and track.</p>
-            <div class="hero-buttons">
-                <a href="/login.html" class="hero-btn hero-btn-primary">Login</a>
-                <a href="/register.html" class="hero-btn hero-btn-secondary">Get Started</a>
-            </div>
+    <div class="container">
+        <div class="logo">AS</div>
+        <h1>Assignment System</h1>
+        <p class="subtitle">Streamline your assignment management. Teachers create and grade, students submit and track.</p>
+        
+        <div id="logged-in-info" style="display: none;"></div>
+        
+        <div class="buttons" id="action-buttons">
+            <a href="/login.html" class="btn btn-primary">Login</a>
+            <a href="/register.html" class="btn btn-secondary">Get Started</a>
         </div>
-    </section>
+        
+        
+    </div>
 
-    <section class="features">
-        <h2 class="section-title">Features</h2>
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">👨‍🏫</div>
-                <h3>For Teachers</h3>
-                <p>Create assignments, grade submissions, view analytics, and track student progress.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">👨‍🎓</div>
-                <h3>For Students</h3>
-                <p>Submit assignments, track grades, receive feedback, and manage your coursework.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🔐</div>
-                <h3>Secure & Reliable</h3>
-                <p>JWT authentication, password hashing, and role-based access control for security.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">📊</div>
-                <h3>Analytics</h3>
-                <p>View grade distributions, submission statistics, and student performance metrics.</p>
-            </div>
-        </div>
-    </section>
+    <script>
+        // Check if user is already logged in
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        
+        if (token && user) {
+            const infoDiv = document.getElementById('logged-in-info');
+            const buttonsDiv = document.getElementById('action-buttons');
+            
+            infoDiv.style.display = 'block';
+            infoDiv.innerHTML = `
+                <p>Welcome back, <strong>${user.username}</strong>!</p>
+                <p style="font-size: 0.9rem; margin-top: 0.25rem;">
+
+
+                </p>
+            `;
+            
+            buttonsDiv.innerHTML = `
+                <a href="/${user.role}-dashboard.html" class="btn btn-primary">Go to Dashboard</a>
+                <a href="#" onclick="logoutUser(event)" class="btn btn-secondary">Logout</a>
+            `;
+        }
+        
+        function logoutUser(e) {
+            e.preventDefault();
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.reload();
+            }
+        }
+    </script>
 </body>
 </html>

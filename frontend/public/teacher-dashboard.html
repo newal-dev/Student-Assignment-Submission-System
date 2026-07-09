@@ -10,12 +10,12 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <a href="/teacher-dashboard.html" class="nav-brand">📚 Assignment System</a>
+            <a href="/teacher-dashboard.html" class="nav-brand">Assignment System</a>
             <ul class="nav-menu">
                 <li><a href="/teacher-dashboard.html" class="active">Dashboard</a></li>
                 <li><a href="#" id="create-assignment-link">+ New Assignment</a></li>
-                <li><a href="#" id="grade-submissions-link">📊 Grade Submissions</a></li>
-                <li><a href="/index.html">🏠 Home</a></li>
+                <li><a href="#" id="grade-submissions-link">Grade Submissions</a></li>
+                <li><a href="/index.html">Home</a></li>
                 <li><a href="#" class="logout-btn">Logout</a></li>
             </ul>
             <div class="user-info">
@@ -27,26 +27,26 @@
 
     <main class="container">
         <div class="dashboard-header">
-            <h1>👨‍🏫 Teacher Dashboard</h1>
+            <h1>Teacher Dashboard</h1>
             <p class="subtitle">Manage assignments and grade submissions</p>
         </div>
 
         <!-- Stats Section -->
         <div class="stats-grid" id="stats-grid">
             <div class="stat-card">
-                <h3>📋 My Assignments</h3>
+                <h3>My Assignments</h3>
                 <p class="stat-number" id="total-assignments">0</p>
             </div>
             <div class="stat-card">
-                <h3>📤 Total Submissions</h3>
+                <h3>Total Submissions</h3>
                 <p class="stat-number" id="total-submissions">0</p>
             </div>
             <div class="stat-card">
-                <h3>✅ Graded</h3>
+                <h3>Graded</h3>
                 <p class="stat-number" id="graded-count">0</p>
             </div>
             <div class="stat-card">
-                <h3>📊 Average Grade</h3>
+                <h3>Average Grade</h3>
                 <p class="stat-number" id="average-grade">N/A</p>
             </div>
         </div>
@@ -54,13 +54,13 @@
         <!-- Quick Actions -->
         <div class="quick-actions">
             <button onclick="showCreateAssignment()" class="btn btn-primary">
-                ➕ Create Assignment
+                Create Assignment
             </button>
             <button onclick="exportAllGrades()" class="btn btn-secondary">
-                📥 Export All Grades
+                Export All Grades
             </button>
             <button onclick="refreshDashboard()" class="btn btn-secondary">
-                🔄 Refresh
+                Refresh
             </button>
         </div>
 
@@ -88,7 +88,7 @@
         <!-- Reminders Section -->
         <div id="reminders-section">
             <div class="section-header">
-                <h2>🔔 Reminders</h2>
+                <h2>Reminders</h2>
             </div>
             <div id="reminders-container">
                 <!-- Reminders loaded by JavaScript -->
@@ -99,7 +99,7 @@
         <div id="create-assignment-modal" class="modal" style="display: none;">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2>Create New Assignment</h2>
+                    <h2 id="assignment-modal-title">Create New Assignment</h2>
                     <span class="close" onclick="closeModal('create-assignment-modal')">&times;</span>
                 </div>
                 <form id="create-assignment-form">
@@ -117,7 +117,7 @@
                     </div>
                     <div class="form-actions">
                         <button type="button" onclick="closeModal('create-assignment-modal')" class="btn btn-secondary">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Create Assignment</button>
+                        <button type="submit" class="btn btn-primary" id="assignment-submit-btn">Create Assignment</button>
                     </div>
                 </form>
             </div>

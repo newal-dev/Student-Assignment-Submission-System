@@ -1,5 +1,5 @@
 /**
- * Is the Student Dashboard Logic
+ * Student Dashboard Logic - Complete
  * Handles all student interactions
  */
 
@@ -15,8 +15,10 @@ let searchTerm = '';
 async function loadStudentDashboard() {
     try {
         // Display user info
-        document.getElementById('user-name').textContent = api.user?.username || 'Student';
-        document.getElementById('user-role').textContent = api.user?.role || 'student';
+        const userName = document.getElementById('user-name');
+        const userRole = document.getElementById('user-role');
+        if (userName) userName.textContent = api.user?.username || 'Student';
+        if (userRole) userRole.textContent = api.user?.role || 'student';
         
         // Load assignments and submissions
         await Promise.all([
@@ -66,23 +68,13 @@ async function loadSubmissions() {
  */
 async function loadStats() {
     try {
-        const data = await api.getMySubmissions();
-        const submissions = data.submissions || [];
+        const data = await api.getMySubmissionStats();
+        const stats = data.statistics || {};
         
-        const total = currentAssignments.length;
-        const submitted = submissions.length;
-        const graded = submissions.filter(s => s.grade !== null).length;
-        const pending = submitted - graded;
-        
-        const grades = submissions.filter(s => s.grade !== null).map(s => s.grade);
-        const avgGrade = grades.length > 0 ? 
-            (grades.reduce((a, b) => a + b, 0) / grades.length).toFixed(1) : 
-            'N/A';
-        
-        document.getElementById('total-assignments').textContent = total;
-        document.getElementById('submitted-count').textContent = submitted;
-        document.getElementById('pending-count').textContent = pending;
-        document.getElementById('average-grade').textContent = avgGrade !== 'N/A' ? `${avgGrade}%` : 'N/A';
+        document.getElementById('total-assignments').textContent = currentAssignments.length || 0;
+        document.getElementById('submitted-count').textContent = stats.total_submissions || 0;
+        document.getElementById('pending-count').textContent = stats.ungraded || 0;
+        document.getElementById('average-grade').textContent = stats.average_grade ? `${stats.average_grade.toFixed(1)}%` : 'N/A';
         
     } catch (error) {
         console.error('Error loading stats:', error);
@@ -94,6 +86,7 @@ async function loadStats() {
  */
 function renderAssignments() {
     const container = document.getElementById('assignments-container');
+    if (!container) return;
     
     // Filter assignments
     let filtered = [...currentAssignments];
@@ -124,7 +117,7 @@ function renderAssignments() {
     if (filtered.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <p>📭 No assignments found</p>
+                <p>No assignments found</p>
                 <p class="text-muted">Check back later for new assignments</p>
             </div>
         `;
@@ -141,11 +134,12 @@ function renderAssignments() {
  */
 function renderSubmissions() {
     const container = document.getElementById('submissions-container');
+    if (!container) return;
     
     if (currentSubmissions.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <p>📭 You haven't submitted any assignments yet</p>
+                <p>You haven't submitted any assignments yet</p>
             </div>
         `;
         return;
@@ -176,8 +170,8 @@ function renderSubmissions() {
                 <td>${formatDate(submission.submitted_at)}</td>
                 <td>
                     ${submission.grade !== null ? 
-                        `<span class="badge badge-success">✅ Graded</span>` :
-                        `<span class="badge badge-warning">⏳ Pending</span>`
+                        `<span class="badge badge-success">Graded</span>` :
+                        `<span class="badge badge-warning">Pending</span>`
                     }
                 </td>
                 <td>
@@ -188,11 +182,11 @@ function renderSubmissions() {
                 </td>
                 <td>
                     ${canUpdate ? `
-                        <button onclick="editSubmission(${submission.id})" class="btn btn-sm btn-primary">✏️ Edit</button>
-                        <button onclick="deleteSubmission(${submission.id})" class="btn btn-sm btn-danger">🗑️ Delete</button>
+                        <button onclick="editSubmission(${submission.id})" class="btn btn-sm btn-primary">Edit</button>
+                        <button onclick="deleteSubmission(${submission.id})" class="btn btn-sm btn-danger">Delete</button>
                     ` : ''}
                     ${submission.file_url ? `
-                        <a href="${submission.file_url}" target="_blank" class="btn btn-sm btn-info">📎 View File</a>
+                        <a href="${submission.file_url}" target="_blank" class="btn btn-sm btn-info">View File</a>
                     ` : ''}
                 </td>
             </tr>
@@ -213,33 +207,44 @@ function renderSubmissions() {
  */
 function setupEventListeners() {
     // Filter dropdown
-    document.getElementById('filter-status').addEventListener('change', (e) => {
-        currentFilter = e.target.value;
-        renderAssignments();
-    });
+    const filterStatus = document.getElementById('filter-status');
+    if (filterStatus) {
+        filterStatus.addEventListener('change', (e) => {
+            currentFilter = e.target.value;
+            renderAssignments();
+        });
+    }
     
     // Search input
-    document.getElementById('search-assignments').addEventListener('input', (e) => {
-        searchTerm = e.target.value;
-        renderAssignments();
-    });
+    const searchInput = document.getElementById('search-assignments');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            searchTerm = e.target.value;
+            renderAssignments();
+        });
+    }
     
     // My submissions link
-    document.getElementById('my-submissions-link').addEventListener('click', (e) => {
-        e.preventDefault();
-        const section = document.getElementById('my-submissions-section');
-        const assignmentsSection = document.querySelector('.assignments-grid');
-        
-        if (section.style.display === 'none') {
-            section.style.display = 'block';
-            assignmentsSection.style.display = 'none';
-            e.target.textContent = '📚 Assignments';
-        } else {
-            section.style.display = 'none';
-            assignmentsSection.style.display = 'grid';
-            e.target.textContent = 'My Submissions';
-        }
-    });
+    const submissionsLink = document.getElementById('my-submissions-link');
+    if (submissionsLink) {
+        submissionsLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            const section = document.getElementById('my-submissions-section');
+            const assignmentsSection = document.querySelector('.assignments-grid');
+            
+            if (section && assignmentsSection) {
+                if (section.style.display === 'none') {
+                    section.style.display = 'block';
+                    assignmentsSection.style.display = 'none';
+                    e.target.textContent = 'Assignments';
+                } else {
+                    section.style.display = 'none';
+                    assignmentsSection.style.display = 'grid';
+                    e.target.textContent = 'My Submissions';
+                }
+            }
+        });
+    }
 }
 
 /**
@@ -260,6 +265,7 @@ async function editSubmission(submissionId) {
         const data = await api.updateSubmission(submissionId, formData);
         showToast('Submission updated successfully!', 'success');
         await loadSubmissions();
+        await loadAssignments();
     } catch (error) {
         showToast('Failed to update submission: ' + error.message, 'error');
     }
@@ -275,7 +281,7 @@ async function deleteSubmission(submissionId) {
         await api.deleteSubmission(submissionId);
         showToast('Submission deleted successfully!', 'success');
         await loadSubmissions();
-        await loadAssignments(); // Refresh to update submission status
+        await loadAssignments();
     } catch (error) {
         showToast('Failed to delete submission: ' + error.message, 'error');
     }

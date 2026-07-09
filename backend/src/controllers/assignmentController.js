@@ -98,8 +98,11 @@ const getAllAssignments = async (req, res, next) => {
             }
         }
         
-        // Filter by specific teacher
-        if (teacher_id) {
+        // Teachers only ever see their own assignments, regardless of query params.
+        // Students can optionally filter by a specific teacher.
+        if (req.user.role === 'teacher') {
+            filters.teacher_id = req.user.id;
+        } else if (teacher_id) {
             filters.teacher_id = parseInt(teacher_id);
         }
 
